@@ -1,0 +1,53 @@
+****SS154 FINAL PROJECT - CHICAGO RED LIGHT CAMERA ENFORCEMENT****
+
+**import dataset**
+use "/Users/nebraskagrayson/Downloads/SS154FP-2.dta"
+
+ssc install diff
+
+**data section**
+*phoenix fatality trend 2000-2017*
+line perfatalcity year if tr==0 
+
+**setting up the model**
+drop if year>=2009
+
+*summary statistics*
+summ 
+
+*test pre-treatment parallel trends*
+twoway line perfatalcity year if tr==1 || line perfatalcity year if tr==0 
+ 
+drop if year == 2002
+drop if year == 2006
+
+*test pre-treatment parallel trends w/out noise*
+twoway line perfatalcity year if tr==1 || line perfatalcity year if tr==0 
+
+*define treatment year (2004)
+gen time1 = (year>=2004) 
+
+*create D&D interaction term*
+gen dd1 = time1*tr
+
+*create RLC & Post-treatment interaction term*
+gen RLCpost = totRLC*time1  
+
+*create alternative treatment year*
+gen time2 = (year>=2003)
+gen dd2 = time2*tr
+gen RLCpost2 = totRLC*time2
+
+**test the model**
+*regression 1 - basic DD model*
+reg perfatalcity time1 tr dd1 
+
+*regression 2 - adding RLCpost term*
+reg perfatalcity time1 tr dd1 totRLC RLCpost
+
+*regression 3 - testing 2003 tr year*
+reg perfatalcity time2 tr dd2 totRLC RLCpost2
+
+*regression 4 - add additional covariates*
+reg perfatalcity time1 tr dd1 totRLC RLCpost ped peralcoholstate perfatalstate perspeedstate 
+
